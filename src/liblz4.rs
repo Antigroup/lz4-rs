@@ -8,7 +8,7 @@ use std::str;
 pub use lz4_sys::*;
 
 #[derive(Debug)]
-pub struct LZ4Error(String);
+pub struct LZ4Error(pub String);
 
 impl Display for LZ4Error {
     fn fmt(&self, f: &mut Formatter) -> Result<(), ::std::fmt::Error> {
