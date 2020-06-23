@@ -24,8 +24,8 @@ impl<R: Read> Decoder<R> {
     /// `finish()`
     pub fn new(r: R) -> Result<Decoder<R>> {
         Ok(Decoder {
-            r: r,
-            c: try!(DecoderContext::new()),
+            r,
+            c: DecoderContext::new()?,
             buf: vec![0; BUFFER_SIZE].into_boxed_slice(),
             pos: BUFFER_SIZE,
             len: BUFFER_SIZE,
@@ -55,18 +55,19 @@ impl<R: Read> Decoder<R> {
 
 impl<R: Read> Read for Decoder<R> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
-        if self.next == 0 || buf.len() == 0 {
+        if self.next == 0 || buf.is_empty() {
             return Ok(0);
         }
         let mut dst_offset: usize = 0;
         while dst_offset == 0 {
             if self.pos >= self.len {
-                let need = match self.buf.len() < self.next {
-                    true => self.buf.len(),
-                    false => self.next,
+                let need = if self.buf.len() < self.next {
+                    self.buf.len()
+                } else {
+                    self.next
                 };
-                self.len = try!(self.r.read(&mut self.buf[0..need]));
-                if self.len <= 0 {
+                self.len = self.r.read(&mut self.buf[0..need])?;
+                if self.len == 0 {
                     break;
                 }
                 self.pos = 0;
@@ -75,7 +76,7 @@ impl<R: Read> Read for Decoder<R> {
             while (dst_offset < buf.len()) && (self.pos < self.len) {
                 let mut src_size = (self.len - self.pos) as size_t;
                 let mut dst_size = (buf.len() - dst_offset) as size_t;
-                let len = try!(check_error(unsafe {
+                let len = check_error(unsafe {
                     LZ4F_decompress(
                         self.c.c,
                         buf[dst_offset..].as_mut_ptr(),
@@ -84,7 +85,7 @@ impl<R: Read> Read for Decoder<R> {
                         &mut src_size,
                         ptr::null(),
                     )
-                }));
+                })?;
                 self.pos += src_size as usize;
                 dst_offset += dst_size as usize;
                 if len == 0 {
@@ -102,9 +103,7 @@ impl<R: Read> Read for Decoder<R> {
 impl DecoderContext {
     fn new() -> Result<DecoderContext> {
         let mut context = LZ4FDecompressionContext(ptr::null_mut());
-        try!(check_error(unsafe {
-            LZ4F_createDecompressionContext(&mut context, LZ4F_VERSION)
-        }));
+        check_error(unsafe { LZ4F_createDecompressionContext(&mut context, LZ4F_VERSION) })?;
         Ok(DecoderContext { c: context })
     }
 }
@@ -119,8 +118,8 @@ impl Drop for DecoderContext {
 mod test {
     extern crate rand;
 
-    use self::rand::Rng;
     use self::rand::rngs::StdRng;
+    use self::rand::Rng;
     use super::super::encoder::{Encoder, EncoderBuilder};
     use super::Decoder;
     use std::io::{Cursor, Error, ErrorKind, Read, Result, Write};
@@ -135,7 +134,7 @@ mod test {
 
     impl<R: Read, Rn: Rng> ErrorWrapper<R, Rn> {
         fn new(rng: Rn, read: R) -> Self {
-            ErrorWrapper { r: read, rng: rng }
+            ErrorWrapper { r: read, rng }
         }
     }
 

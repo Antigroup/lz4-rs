@@ -16,7 +16,8 @@ fn main() {
             decompress(
                 &Path::new(arg),
                 &Path::new(&arg[0..arg.len() - suffix.len()]),
-            ).unwrap();
+            )
+            .unwrap();
         } else {
             compress(&Path::new(arg), &Path::new(&(arg.to_string() + suffix))).unwrap();
         }
@@ -25,9 +26,9 @@ fn main() {
 
 fn compress(src: &Path, dst: &Path) -> Result<()> {
     println!("Compressing: {:?} -> {:?}", src, dst);
-    let mut fi = try!(File::open(src));
-    let mut fo = try!(lz4::EncoderBuilder::new().build(try!(File::create(dst))));
-    try!(copy(&mut fi, &mut fo));
+    let mut fi = File::open(src)?;
+    let mut fo = lz4::EncoderBuilder::new().build(File::create(dst)?)?;
+    copy(&mut fi, &mut fo)?;
     match fo.finish() {
         (_, result) => result,
     }
@@ -35,19 +36,19 @@ fn compress(src: &Path, dst: &Path) -> Result<()> {
 
 fn decompress(src: &Path, dst: &Path) -> Result<()> {
     println!("Decompressing: {:?} -> {:?}", src, dst);
-    let mut fi = try!(lz4::Decoder::new(try!(File::open(src))));
-    let mut fo = try!(File::create(dst));
+    let mut fi = lz4::Decoder::new(File::open(src)?)?;
+    let mut fo = File::create(dst)?;
     copy(&mut fi, &mut fo)
 }
 
-fn copy(src: &mut Read, dst: &mut Write) -> Result<()> {
+fn copy(src: &mut dyn Read, dst: &mut dyn Write) -> Result<()> {
     let mut buffer: [u8; 1024] = [0; 1024];
     loop {
-        let len = try!(src.read(&mut buffer));
+        let len = src.read(&mut buffer)?;
         if len == 0 {
             break;
         }
-        try!(dst.write_all(&buffer[0..len]));
+        dst.write_all(&buffer[0..len])?;
     }
     Ok(())
 }

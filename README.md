@@ -1,11 +1,12 @@
 lz4
 ====
 
-[![Build Status](https://travis-ci.org/bozaro/lz4-rs.svg?branch=master)](https://travis-ci.org/bozaro/lz4-rs)
+[![Build Status](https://github.com/10XGenomics/lz4-rs/workflows/Test/badge.svg?branch=master)](https://github.com/10XGenomics/lz4-rs/actions?query=branch%3Amaster)
 [![Crates.io](https://img.shields.io/crates/v/lz4.svg)](https://crates.io/crates/lz4)
-[![GitHub license](https://img.shields.io/github/license/bozaro/lz4-rs.svg)](https://github.com/bozaro/lz4-rs/blob/master/LICENSE)
 [![Join the chat at https://gitter.im/bozaro/lz4-rs](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/bozaro/lz4-rs?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-[![Rustdoc](https://img.shields.io/badge/doc-rustdoc-green.svg)](https://bozaro.github.io/lz4-rs/lz4/)
+[![Rustdoc](https://img.shields.io/badge/doc-rustdoc-green.svg)](https://docs.rs/lz4/)
+
+NOTE: 10xGenomics is the new official home of lz4-rs, replacing [https://github.com/bozaro/lz4-rs](https://github.com/bozaro/lz4-rs)
 
 This repository contains binding for lz4 compression library (https://github.com/Cyan4973/lz4).
 

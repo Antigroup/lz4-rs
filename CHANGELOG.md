@@ -1,3 +1,8 @@
+1.23.2:
+ * Update lz4 to 1.9.2
+ * Remove dependency on skeptic (replace with build-dependency docmatic for     README testing)
+ * Move to Rust 2018 edition
+
 1.23.0:
  * Update lz4 to v1.8.2
  * Add lz4 block mode api

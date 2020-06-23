@@ -8,10 +8,10 @@ mod encoder;
 
 pub mod block;
 
-pub use decoder::Decoder;
-pub use encoder::Encoder;
-pub use encoder::EncoderBuilder;
-pub use liblz4::version;
-pub use liblz4::BlockMode;
-pub use liblz4::BlockSize;
-pub use liblz4::ContentChecksum;
+pub use crate::decoder::Decoder;
+pub use crate::encoder::Encoder;
+pub use crate::encoder::EncoderBuilder;
+pub use crate::liblz4::version;
+pub use crate::liblz4::BlockMode;
+pub use crate::liblz4::BlockSize;
+pub use crate::liblz4::ContentChecksum;

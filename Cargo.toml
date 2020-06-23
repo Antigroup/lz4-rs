@@ -1,13 +1,13 @@
 [package]
 name = "lz4"
 license = "MIT"
-version = "1.23.1"
+version = "1.23.2"
 readme = "README.md"
-authors = [ "Jens Heyens <jens.heyens@ewetel.net>", "Artem V. Navrotskiy <bozaro@buzzsoft.ru>" ]
-build = "build.rs"
+authors = [ "Jens Heyens <jens.heyens@ewetel.net>", "Artem V. Navrotskiy <bozaro@buzzsoft.ru>", "Patrick Marks <pmarks@gmail.com>"]
 description = "Rust LZ4 bindings library."
-repository = "https://github.com/bozaro/lz4-rs"
-documentation = "https://bozaro.github.io/lz4-rs/lz4/"
+repository = "https://github.com/10xGenomics/lz4-rs"
+documentation = "https://docs.rs/lz4"
+edition = "2018"
 
 [[bin]]
 name = "lz4"
@@ -15,12 +15,9 @@ test = false
 doc = false
 
 [dependencies]
-libc = "0.2.44"
-lz4-sys = { path = "lz4-sys", version = "1.8.3" }
+libc = "0.2"
+lz4-sys = { path = "lz4-sys", version = "1.9.2" }
 
 [dev-dependencies]
-rand = "0.6.1"
-skeptic = "0.13.3"
-
-[build-dependencies]
-skeptic = "0.13.3"
+rand = "0.7"
+docmatic = "0.1"
