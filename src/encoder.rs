@@ -1,5 +1,5 @@
 use super::liblz4::*;
-use libc::size_t;
+use super::size_t;
 use std::io::Result;
 use std::io::Write;
 use std::io::{Error, ErrorKind};
