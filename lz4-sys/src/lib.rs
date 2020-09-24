@@ -1,7 +1,30 @@
 #![no_std]
 extern crate libc;
 
+#[cfg(not(all(
+    target_arch = "wasm32",
+    not(any(target_env = "wasi", target_os = "wasi"))
+)))]
 use libc::{c_void, c_char, c_uint, size_t, c_int};
+
+#[cfg(all(
+    target_arch = "wasm32",
+    not(any(target_env = "wasi", target_os = "wasi"))
+))]
+extern crate std;
+
+#[cfg(all(
+    target_arch = "wasm32",
+    not(any(target_env = "wasi", target_os = "wasi"))
+))]
+use std::os::raw::{c_void, c_char, c_uint, c_int};
+
+#[cfg(all(
+    target_arch = "wasm32",
+    not(any(target_env = "wasi", target_os = "wasi"))
+))]
+#[allow(non_camel_case_types)]
+type size_t = usize;
 
 #[derive(Clone, Copy)]
 #[repr(C)]

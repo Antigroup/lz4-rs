@@ -18,8 +18,8 @@
 //! assert_eq!(v, decompress(&comp_wo_prefix, Some(1024)).unwrap());
 //! ```
 
+use super::c_char;
 use super::liblz4::*;
-use libc::c_char;
 use std::io::{Error, ErrorKind, Result};
 
 /// Represents the compression mode do be used.

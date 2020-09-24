@@ -1,5 +1,5 @@
 use super::liblz4::*;
-use libc::size_t;
+use super::size_t;
 use std::io::{Error, ErrorKind, Read, Result};
 use std::ptr;
 
