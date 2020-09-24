@@ -1,10 +1,8 @@
 use super::liblz4::*;
 use super::size_t;
+use std::io::{Error, ErrorKind, Read, Result};
 use std::ptr;
-use std::{
-    io::{Error, ErrorKind, Read, Result},
-    sync::Arc,
-};
+use std::sync::Arc;
 
 const BUFFER_SIZE: usize = 32 * 1024;
 

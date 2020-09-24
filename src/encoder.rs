@@ -1,10 +1,11 @@
 use super::liblz4::*;
 use super::size_t;
+use std::cmp;
 use std::io::Result;
 use std::io::Write;
 use std::io::{Error, ErrorKind};
 use std::ptr;
-use std::{cmp, sync::Arc};
+use std::sync::Arc;
 
 struct EncoderContext {
     c: LZ4FCompressionContext,
