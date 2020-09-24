@@ -1,10 +1,10 @@
 use super::liblz4::*;
 use libc::size_t;
-use std::cmp;
 use std::io::Result;
 use std::io::Write;
 use std::io::{Error, ErrorKind};
 use std::ptr;
+use std::{cmp, sync::Arc};
 
 struct EncoderContext {
     c: LZ4FCompressionContext,
@@ -15,7 +15,7 @@ pub struct EncoderDictionary {
 }
 
 #[derive(Clone)]
-pub struct EncoderBuilder<'a> {
+pub struct EncoderBuilder {
     block_size: BlockSize,
     block_mode: BlockMode,
     checksum: ContentChecksum,
@@ -23,11 +23,13 @@ pub struct EncoderBuilder<'a> {
     level: u32,
     // 1 == always flush (reduce need for tmp buffer)
     auto_flush: bool,
-    dictionary: Option<&'a EncoderDictionary>,
+    dictionary: Option<Arc<EncoderDictionary>>,
 }
 
 pub struct Encoder<W> {
     c: EncoderContext,
+    // Needs to live as long as the Encoder
+    _dict: Option<Arc<EncoderDictionary>>,
     w: W,
     limit: usize,
     buffer: Vec<u8>,
@@ -56,7 +58,7 @@ impl Drop for EncoderDictionary {
     }
 }
 
-impl<'a> EncoderBuilder<'a> {
+impl EncoderBuilder {
     pub fn new() -> Self {
         EncoderBuilder {
             block_size: BlockSize::Default,
@@ -93,7 +95,7 @@ impl<'a> EncoderBuilder<'a> {
         self
     }
 
-    pub fn dictionary(&mut self, dictionary: &'a EncoderDictionary) -> &mut Self {
+    pub fn dictionary(&mut self, dictionary: Arc<EncoderDictionary>) -> &mut Self {
         self.dictionary = Some(dictionary);
         self
     }
@@ -114,6 +116,7 @@ impl<'a> EncoderBuilder<'a> {
         let mut encoder = Encoder {
             w,
             c: EncoderContext::new()?,
+            _dict: self.dictionary.clone(),
             limit: block_size,
             buffer: Vec::with_capacity(check_error(unsafe {
                 LZ4F_compressBound(block_size as size_t, &preferences)
@@ -251,7 +254,7 @@ impl Drop for EncoderContext {
 mod test {
     use super::EncoderBuilder;
     use super::EncoderDictionary;
-    use std::io::Write;
+    use std::{io::Write, sync::Arc};
 
     #[test]
     fn test_encoder_smoke() {
@@ -285,10 +288,10 @@ mod test {
 
     #[test]
     fn test_encoder_dictionary() {
-        let dictionary = EncoderDictionary::new(b"dictionary").unwrap();
+        let dictionary = EncoderDictionary::new(b"compression is good").unwrap();
         let mut encoder = EncoderBuilder::new()
             .level(1)
-            .dictionary(&dictionary)
+            .dictionary(Arc::new(dictionary))
             .build(Vec::new())
             .unwrap();
         encoder

@@ -1,7 +1,10 @@
 use super::liblz4::*;
 use libc::size_t;
-use std::io::{Error, ErrorKind, Read, Result};
 use std::ptr;
+use std::{
+    io::{Error, ErrorKind, Read, Result},
+    sync::Arc,
+};
 
 const BUFFER_SIZE: usize = 32 * 1024;
 
@@ -9,21 +12,21 @@ struct DecoderContext {
     c: LZ4FDecompressionContext,
 }
 
-pub struct Decoder<'a, R> {
+pub struct Decoder<R> {
     c: DecoderContext,
     r: R,
     buf: Box<[u8]>,
     pos: usize,
     len: usize,
     next: usize,
-    dict: Option<&'a [u8]>,
+    dict: Option<Arc<[u8]>>,
 }
 
-impl<'a, R: Read> Decoder<'a, R> {
+impl<R: Read> Decoder<R> {
     /// Creates a new encoder which will have its output written to the given
     /// output stream. The output stream can be re-acquired by calling
     /// `finish()`
-    pub fn new(r: R) -> Result<Decoder<'a, R>> {
+    pub fn new(r: R) -> Result<Decoder<R>> {
         Ok(Decoder {
             r,
             c: DecoderContext::new()?,
@@ -38,7 +41,7 @@ impl<'a, R: Read> Decoder<'a, R> {
 
     /// Creates a new decoder with a dictionary, which should be the one which
     /// was used in encoding.
-    pub fn with_dictionary(r: R, dict: &'a [u8]) -> Result<Decoder<'a, R>> {
+    pub fn with_dictionary(r: R, dict: Arc<[u8]>) -> Result<Decoder<R>> {
         Ok(Decoder {
             r: r,
             c: DecoderContext::new()?,
@@ -70,7 +73,7 @@ impl<'a, R: Read> Decoder<'a, R> {
     }
 }
 
-impl<'a, R: Read> Read for Decoder<'a, R> {
+impl<R: Read> Read for Decoder<R> {
     fn read(&mut self, buf: &mut [u8]) -> Result<usize> {
         if self.next == 0 || buf.is_empty() {
             return Ok(0);
@@ -94,7 +97,7 @@ impl<'a, R: Read> Read for Decoder<'a, R> {
                 let mut src_size = (self.len - self.pos) as size_t;
                 let mut dst_size = (buf.len() - dst_offset) as size_t;
                 let len = check_error(unsafe {
-                    match self.dict {
+                    match &self.dict {
                         Some(dict) => LZ4F_decompress_usingDict(
                             self.c.c,
                             buf[dst_offset..].as_mut_ptr(),
@@ -319,11 +322,11 @@ mod test {
 
     #[test]
     fn test_decoder_smoke_dictionary() {
-        let dict_data = b"dictionary with some data";
-        let dict = EncoderDictionary::new(dict_data).unwrap();
+        let dict_data: Vec<u8> = b"dictionary with some data".iter().copied().collect();
+        let dict = EncoderDictionary::new(&dict_data[..]).unwrap();
         let mut encoder = EncoderBuilder::new()
             .level(1)
-            .dictionary(&dict)
+            .dictionary(dict.into())
             .build(Vec::new())
             .unwrap();
         let mut expected = Vec::new();
@@ -332,7 +335,7 @@ mod test {
         encoder.write(&expected[4..]).unwrap();
         let buffer = finish_encode(encoder);
 
-        let mut decoder = Decoder::with_dictionary(Cursor::new(buffer), dict_data).unwrap();
+        let mut decoder = Decoder::with_dictionary(Cursor::new(buffer), dict_data.into()).unwrap();
         let mut actual = Vec::new();
 
         decoder.read_to_end(&mut actual).unwrap();
